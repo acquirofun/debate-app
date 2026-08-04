@@ -197,8 +197,10 @@ export default function DebateRoom() {
           console.log('Motion generation completed, sharing with opponent');
           
           // Share motion with the other user
-          shareMotion(motion, roomId);
-          setSharedMotion(motion);
+          if (motion) {
+            shareMotion(motion, roomId);
+            setSharedMotion(motion);
+          }
           
           // First user generates the coin toss
           setTimeout(() => {
@@ -212,7 +214,7 @@ export default function DebateRoom() {
       
       runWorkflow();
     }
-  }, [isConnected, phase, generateMotion, shareMotion, roomId, flipCoin]);
+  }, [isConnected, phase]);
 
   useEffect(() => {
     if (coinResult && !isFlipping) {
