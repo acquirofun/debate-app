@@ -144,11 +144,7 @@ export default function DebateRoom() {
       onMotionShared(handleMotionShared);
       
       return () => {
-        // Cleanup listener when component unmounts
-        const socket = (window as any).socketInstance;
-        if (socket) {
-          socket.off('motion-shared', handleMotionShared);
-        }
+        // Cleanup is handled by the hook
       };
     }
   }, [roomId, onMotionShared]);

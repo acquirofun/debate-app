@@ -59,15 +59,21 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
       setError('Connection error. Attempting to reconnect...');
     });
 
+    socketRef.current.on('disconnect', (reason) => {
+      console.log('🔌 Socket disconnected:', reason);
+      setIsConnected(false);
+    });
+
     socketRef.current.on('reconnect', () => {
       console.log('🔄 Socket reconnected');
+      setError(null);
       if (roomId) {
         socketRef.current?.emit('join-room', roomId);
       }
     });
 
-    socketRef.current.on('reconnect_attempt', () => {
-      console.log('🔄 Attempting to reconnect...');
+    socketRef.current.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`🔄 Reconnection attempt ${attemptNumber}...`);
     });
 
     socketRef.current.on('reconnect_failed', () => {
@@ -103,6 +109,21 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
       setIsConnected(false);
       setRemoteStream(null);
       isInitiatorRef.current = false;
+    });
+
+    // Handle shared motion event
+    socketRef.current.on('motion-shared', (data: { motion: string }) => {
+      console.log('📜 Received motion-shared event:', data.motion);
+    });
+
+    // Handle shared coin toss event
+    socketRef.current.on('coin-toss-shared', (data: { result: any }) => {
+      console.log('🪙 Received coin-toss-shared event:', data.result);
+    });
+
+    // Handle turn change event
+    socketRef.current.on('turn-changed', (data: { turn: string }) => {
+      console.log('🔄 Received turn-changed event:', data.turn);
     });
 
     return () => {
@@ -332,18 +353,24 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
 
   const onMotionShared = useCallback((callback: (motion: string) => void) => {
     if (socketRef.current) {
+      // Remove any existing listener to prevent duplicates
+      socketRef.current.off('motion-shared');
       socketRef.current.on('motion-shared', callback);
     }
   }, []);
 
   const onCoinTossShared = useCallback((callback: (result: any) => void) => {
     if (socketRef.current) {
+      // Remove any existing listener to prevent duplicates
+      socketRef.current.off('coin-toss-shared');
       socketRef.current.on('coin-toss-shared', callback);
     }
   }, []);
 
   const onTurnChanged = useCallback((callback: (turn: string) => void) => {
     if (socketRef.current) {
+      // Remove any existing listener to prevent duplicates
+      socketRef.current.off('turn-changed');
       socketRef.current.on('turn-changed', callback);
     }
   }, []);
