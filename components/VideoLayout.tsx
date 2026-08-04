@@ -54,10 +54,18 @@ export default function VideoLayout({
       // Only update if the stream is actually different
       if (remoteVideoRef.current.srcObject !== remoteStream) {
         remoteVideoRef.current.srcObject = remoteStream;
-        // Don't auto-play to prevent interruption errors
+        // Force play to ensure audio is ready
+        remoteVideoRef.current.play().catch(e => console.error('Error playing remote video:', e));
+        // Small delay to ensure audio is ready
+        setTimeout(() => {
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.muted = false;
+            setIsRemoteAudioEnabled(true);
+          }
+        }, 100);
       }
     }
-  }, [remoteStream]);
+  }, [remoteStream, setIsRemoteAudioEnabled]);
 
   const toggleAudio = () => {
     if (localStream) {
@@ -85,8 +93,8 @@ export default function VideoLayout({
 
   const toggleRemoteAudio = () => {
     if (remoteVideoRef.current) {
-      const newState = !remoteVideoRef.current.muted;
-      remoteVideoRef.current.muted = newState;
+      const newState = !isRemoteAudioEnabled;
+      remoteVideoRef.current.muted = !newState;
       setIsRemoteAudioEnabled(newState);
       console.log('Remote audio toggled:', newState ? 'enabled' : 'disabled');
     }
@@ -166,6 +174,8 @@ export default function VideoLayout({
             ref={remoteVideoRef}
             autoPlay
             playsInline
+            muted={false}
+            volume={1.0}
             className="w-full h-full object-cover"
           />
           

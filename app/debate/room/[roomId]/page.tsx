@@ -134,7 +134,7 @@ export default function DebateRoom() {
       await startCall();
     } catch (err) {
       console.error('Failed to connect:', err);
-      setError('Connection failed. Please try again.');
+      // The error will be handled by the WebRTC hook
     }
   };
 
