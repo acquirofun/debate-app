@@ -130,20 +130,22 @@ export default function DebateRoom() {
 
   const handleConnectToOpponent = async () => {
     try {
+      console.log('Manual connection attempt');
       await startCall();
     } catch (err) {
       console.error('Failed to connect:', err);
+      setError('Connection failed. Please try again.');
     }
   };
 
-  // Automated workflow after connection
+  // Automated workflow after connection - instant motion selection
   useEffect(() => {
     if (isConnected && phase === 'setup') {
       setPhase('motion');
-      // Automatically generate motion after 10 seconds
-      const motionTimer = setTimeout(async () => {
+      // Instantly generate motion without delay
+      const runWorkflow = async () => {
         try {
-          console.log('Starting automated motion generation...');
+          console.log('Starting instant motion generation...');
           await generateMotion();
           console.log('Motion generation completed, moving to toss phase');
           setPhase('toss');
@@ -151,15 +153,15 @@ export default function DebateRoom() {
           setTimeout(() => {
             console.log('Starting coin flip...');
             flipCoin();
-          }, 2000); // 2 seconds after motion
+          }, 1000); // 1 second after motion
         } catch (err) {
           console.error('Error in automated workflow:', err);
         }
-      }, 10000); // 10 seconds after connection
+      };
       
-      return () => clearTimeout(motionTimer);
+      runWorkflow();
     }
-  }, [isConnected, phase, generateMotion, flipCoin]);
+  }, [isConnected, phase]);
 
   useEffect(() => {
     if (coinResult && !isFlipping) {
@@ -262,9 +264,10 @@ export default function DebateRoom() {
                   {localStream && !isConnected && (
                     <button
                       onClick={handleConnectToOpponent}
-                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition"
+                      disabled={isConnecting}
+                      className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition"
                     >
-                      📞 Connect to Opponent
+                      {isConnecting ? '🔄 Connecting...' : '📞 Connect to Opponent'}
                     </button>
                   )}
                   

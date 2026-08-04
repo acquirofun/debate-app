@@ -169,6 +169,12 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
 
   const initializePeer = async (initiator: boolean, initialSignal?: any) => {
     try {
+      // Clean up existing peer if any
+      if (peerRef.current) {
+        peerRef.current.destroy();
+        peerRef.current = null;
+      }
+
       setIsConnecting(true);
       setError(null);
 
@@ -181,7 +187,7 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
         stream = await initializeMedia();
       }
 
-      // Create WebRTC peer connection
+      // Create WebRTC peer connection with better configuration
       const peer = new SimplePeer({
         initiator,
         trickle: false,
@@ -191,7 +197,13 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
             { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' },
           ]
+        },
+        offerOptions: {
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
         }
       });
 
@@ -235,12 +247,24 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
         console.error('❌ Peer connection error:', err);
         setError('Connection failed. Please try again.');
         setIsConnecting(false);
+        
+        // Clean up on error
+        if (peerRef.current) {
+          peerRef.current.destroy();
+          peerRef.current = null;
+        }
       });
 
       peer.on('close', () => {
         console.log('🔌 Peer connection closed');
         setIsConnected(false);
         setRemoteStream(null);
+        
+        // Clean up on close
+        if (peerRef.current) {
+          peerRef.current.destroy();
+          peerRef.current = null;
+        }
       });
 
       // If we have an initial signal, process it
@@ -251,6 +275,7 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
 
     } catch (err) {
       console.error('❌ Error initializing peer:', err);
+      setError('Connection failed. Please try again.');
       setIsConnecting(false);
     }
   };
