@@ -143,10 +143,13 @@ export default function DebateRoom() {
       // Automatically generate motion after 10 seconds
       const motionTimer = setTimeout(async () => {
         try {
+          console.log('Starting automated motion generation...');
           await generateMotion();
+          console.log('Motion generation completed, moving to toss phase');
           setPhase('toss');
           // Automatically flip coin after motion generation
           setTimeout(() => {
+            console.log('Starting coin flip...');
             flipCoin();
           }, 2000); // 2 seconds after motion
         } catch (err) {
@@ -275,13 +278,22 @@ export default function DebateRoom() {
 
               {phase === 'motion' && (
                 <div className="space-y-4 text-center">
-                  <p className="text-lg">Generating debate motion...</p>
-                  {isGeneratingMotion && (
-                    <div className="animate-spin text-4xl">⚙️</div>
-                  )}
-                  {!isGeneratingMotion && motion && (
-                    <div className="bg-blue-900/50 p-3 rounded-lg">
-                      <p className="text-blue-400">✓ Motion generated successfully</p>
+                  {isGeneratingMotion ? (
+                    <div>
+                      <p className="text-lg">Generating debate motion...</p>
+                      <div className="animate-spin text-4xl mt-2">⚙️</div>
+                    </div>
+                  ) : motion ? (
+                    <div className="space-y-3">
+                      <div className="bg-blue-900/50 p-4 rounded-lg">
+                        <p className="text-blue-400 mb-2">✓ Motion generated successfully</p>
+                        <p className="text-xl font-bold italic">"{motion}"</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-lg">Generating debate motion...</p>
+                      <div className="animate-spin text-4xl mt-2">⚙️</div>
                     </div>
                   )}
                 </div>
