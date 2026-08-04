@@ -177,7 +177,6 @@ export default function VideoLayout({
             autoPlay
             playsInline
             muted={false}
-            volume={1.0}
             className="w-full h-full object-cover"
           />
           
