@@ -2,12 +2,12 @@ import { useState } from 'react';
 
 interface JudgeResult {
   analysis: string;
-  affirmativeScore: number;
-  negativeScore: number;
+  governmentScore: number;
+  oppositionScore: number;
   winner: string;
   feedback: {
-    affirmative: string;
-    negative: string;
+    government: string;
+    opposition: string;
   };
 }
 
