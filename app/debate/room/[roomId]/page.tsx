@@ -487,6 +487,17 @@ export default function DebateRoom() {
                         <p className="text-sm whitespace-pre-wrap">{judgeResult.analysis}</p>
                       </div>
 
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="bg-green-900/30 p-2 rounded">
+                          <p className="text-xs text-green-400 mb-1">Government Feedback</p>
+                          <p className="text-xs">{judgeResult.feedback?.government || 'N/A'}</p>
+                        </div>
+                        <div className="bg-red-900/30 p-2 rounded">
+                          <p className="text-xs text-red-400 mb-1">Opposition Feedback</p>
+                          <p className="text-xs">{judgeResult.feedback?.opposition || 'N/A'}</p>
+                        </div>
+                      </div>
+
                       <button
                         onClick={handleStartOver}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition"
