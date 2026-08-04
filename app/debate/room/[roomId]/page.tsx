@@ -28,6 +28,7 @@ export default function DebateRoom() {
     isConnected,
     joinRoom,
     startCall,
+    initializeMedia,
     error: webRTCError,
   } = useWebRTC(roomId);
 
@@ -90,6 +91,7 @@ export default function DebateRoom() {
 
   useEffect(() => {
     if (roomId) {
+      // Only join once
       joinRoom(roomId);
     }
   }, [roomId, joinRoom]);
@@ -99,6 +101,23 @@ export default function DebateRoom() {
       setPhase('motion');
     }
   }, [isConnected, phase]);
+
+  // Initialize media when entering the room (only once)
+  useEffect(() => {
+    const initMedia = async () => {
+      try {
+        if (!localStream) {
+          await initializeMedia();
+        }
+      } catch (err) {
+        console.error('Failed to initialize media:', err);
+      }
+    };
+    
+    if (roomId && phase === 'setup' && !localStream) {
+      initMedia();
+    }
+  }, [roomId, phase, localStream, initializeMedia]);
 
   const handleGenerateMotion = async () => {
     await generateMotion();
@@ -188,9 +207,45 @@ export default function DebateRoom() {
             {/* Phase Controls */}
             <div className="bg-gray-800 rounded-lg p-4">
               {phase === 'setup' && (
-                <div className="text-center">
+                <div className="space-y-4 text-center">
                   <p className="mb-4">Waiting for opponent to join...</p>
                   {isConnected && <p className="text-green-400">Connected! Starting debate setup...</p>}
+                  
+                  {!localStream && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await initializeMedia();
+                        } catch (err) {
+                          console.error('Failed to initialize media:', err);
+                        }
+                      }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition"
+                    >
+                      🎤 Enable Camera & Microphone
+                    </button>
+                  )}
+                  
+                  {localStream && !isConnected && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          await startCall();
+                        } catch (err) {
+                          console.error('Failed to start call:', err);
+                        }
+                      }}
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition"
+                    >
+                      📞 Connect to Opponent
+                    </button>
+                  )}
+                  
+                  {localStream && (
+                    <div className="bg-green-900/50 p-3 rounded-lg">
+                      <p className="text-green-400">✓ Camera & Microphone Ready</p>
+                    </div>
+                  )}
                 </div>
               )}
 

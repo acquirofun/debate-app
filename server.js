@@ -31,25 +31,28 @@ app.prepare().then(() => {
   });
 
   io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
+    console.log('✓ User connected:', socket.id);
 
     socket.on('join-room', (roomId) => {
       socket.join(roomId);
-      console.log(`User ${socket.id} joined room ${roomId}`);
+      console.log(`🏠 User ${socket.id} joined room ${roomId}`);
       
       // Check if there are other users in the room
       const room = io.sockets.adapter.rooms.get(roomId);
       if (room && room.size > 1) {
+        console.log(`👥 Room ${roomId} now has ${room.size} users`);
         // Notify the new user that there are others in the room
         socket.emit('room-users', Array.from(room).filter(id => id !== socket.id));
+      } else {
+        console.log(`👤 User ${socket.id} is first in room ${roomId}`);
       }
       
-      // Notify others in the room
+      // Always notify others in the room that a new user joined
       socket.to(roomId).emit('user-connected', socket.id);
     });
 
     socket.on('signal', (data) => {
-      console.log('Signal from', data.userId, 'in room', data.roomId);
+      console.log('📡 Signal from', data.userId, 'in room', data.roomId);
       socket.to(data.roomId).emit('signal', {
         signal: data.signal,
         userId: data.userId,
@@ -57,7 +60,7 @@ app.prepare().then(() => {
     });
 
     socket.on('disconnect', () => {
-      console.log('User disconnected:', socket.id);
+      console.log('👋 User disconnected:', socket.id);
       socket.broadcast.emit('user-disconnected', socket.id);
     });
   });
