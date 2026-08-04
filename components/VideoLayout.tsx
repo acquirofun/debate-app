@@ -61,11 +61,12 @@ export default function VideoLayout({
           if (remoteVideoRef.current) {
             remoteVideoRef.current.muted = false;
             setIsRemoteAudioEnabled(true);
+            console.log('Remote audio initialized: unmuted');
           }
         }, 100);
       }
     }
-  }, [remoteStream, setIsRemoteAudioEnabled]);
+  }, [remoteStream]);
 
   const toggleAudio = () => {
     if (localStream) {
@@ -97,6 +98,7 @@ export default function VideoLayout({
       remoteVideoRef.current.muted = !newState;
       setIsRemoteAudioEnabled(newState);
       console.log('Remote audio toggled:', newState ? 'enabled' : 'disabled');
+      console.log('Video muted state:', remoteVideoRef.current.muted);
     }
   };
 
