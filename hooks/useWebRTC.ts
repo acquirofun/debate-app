@@ -9,7 +9,7 @@ interface UseWebRTCReturn {
   isConnected: boolean;
   joinRoom: (roomId: string) => void;
   startCall: () => void;
-  initializeMedia: () => Promise<void>;
+  initializeMedia: () => Promise<MediaStream>;
   error: string | null;
 }
 
