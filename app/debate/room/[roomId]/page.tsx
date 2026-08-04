@@ -128,6 +128,36 @@ export default function DebateRoom() {
     flipCoin();
   };
 
+  const handleConnectToOpponent = async () => {
+    try {
+      await startCall();
+    } catch (err) {
+      console.error('Failed to connect:', err);
+    }
+  };
+
+  // Automated workflow after connection
+  useEffect(() => {
+    if (isConnected && phase === 'setup') {
+      setPhase('motion');
+      // Automatically generate motion after 10 seconds
+      const motionTimer = setTimeout(async () => {
+        try {
+          await generateMotion();
+          setPhase('toss');
+          // Automatically flip coin after motion generation
+          setTimeout(() => {
+            flipCoin();
+          }, 2000); // 2 seconds after motion
+        } catch (err) {
+          console.error('Error in automated workflow:', err);
+        }
+      }, 10000); // 10 seconds after connection
+      
+      return () => clearTimeout(motionTimer);
+    }
+  }, [isConnected, phase, generateMotion, flipCoin]);
+
   useEffect(() => {
     if (coinResult && !isFlipping) {
       setPhase('preparation');
@@ -209,7 +239,7 @@ export default function DebateRoom() {
               {phase === 'setup' && (
                 <div className="space-y-4 text-center">
                   <p className="mb-4">Waiting for opponent to join...</p>
-                  {isConnected && <p className="text-green-400">Connected! Starting debate setup...</p>}
+                  {isConnected && <p className="text-green-400">✓ Connected! Starting debate setup in 10 seconds...</p>}
                   
                   {!localStream && (
                     <button
@@ -228,13 +258,7 @@ export default function DebateRoom() {
                   
                   {localStream && !isConnected && (
                     <button
-                      onClick={async () => {
-                        try {
-                          await startCall();
-                        } catch (err) {
-                          console.error('Failed to start call:', err);
-                        }
-                      }}
+                      onClick={handleConnectToOpponent}
                       className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition"
                     >
                       📞 Connect to Opponent
@@ -250,31 +274,25 @@ export default function DebateRoom() {
               )}
 
               {phase === 'motion' && (
-                <div className="space-y-4">
-                  <button
-                    onClick={handleGenerateMotion}
-                    disabled={isGeneratingMotion}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition"
-                  >
-                    {isGeneratingMotion ? 'Generating Motion...' : 'Generate Motion'}
-                  </button>
+                <div className="space-y-4 text-center">
+                  <p className="text-lg">Generating debate motion...</p>
+                  {isGeneratingMotion && (
+                    <div className="animate-spin text-4xl">⚙️</div>
+                  )}
+                  {!isGeneratingMotion && motion && (
+                    <div className="bg-blue-900/50 p-3 rounded-lg">
+                      <p className="text-blue-400">✓ Motion generated successfully</p>
+                    </div>
+                  )}
                 </div>
               )}
 
               {phase === 'toss' && (
                 <div className="space-y-4 text-center">
+                  <p className="text-lg">Flipping coin for side assignment...</p>
                   <div className="text-6xl mb-4">
                     {isFlipping ? '🪙' : coinResult ? (coinResult.result === 'Heads' ? '👑' : '🦅') : '🪙'}
                   </div>
-                  {!coinResult && (
-                    <button
-                      onClick={handleFlipCoin}
-                      disabled={isFlipping}
-                      className="w-full bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition"
-                    >
-                      {isFlipping ? 'Flipping...' : 'Flip Coin'}
-                    </button>
-                  )}
                   {coinResult && (
                     <div className="space-y-2">
                       <p className="text-xl">Result: <span className="font-bold">{coinResult.result}</span></p>
