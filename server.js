@@ -59,6 +59,24 @@ app.prepare().then(() => {
       });
     });
 
+    // Share motion with all users in the room
+    socket.on('share-motion', (data) => {
+      console.log('📜 Sharing motion in room:', data.roomId);
+      socket.to(data.roomId).emit('motion-shared', data.motion);
+    });
+
+    // Share coin toss result with all users in the room
+    socket.on('share-coin-toss', (data) => {
+      console.log('🪙 Sharing coin toss in room:', data.roomId);
+      socket.to(data.roomId).emit('coin-toss-shared', data);
+    });
+
+    // Notify users about turn changes
+    socket.on('turn-change', (data) => {
+      console.log('🔄 Turn change in room:', data.roomId);
+      socket.to(data.roomId).emit('turn-changed', data);
+    });
+
     socket.on('disconnect', () => {
       console.log('👋 User disconnected:', socket.id);
       socket.broadcast.emit('user-disconnected', socket.id);

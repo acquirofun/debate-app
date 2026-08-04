@@ -10,6 +10,12 @@ interface UseWebRTCReturn {
   joinRoom: (roomId: string) => void;
   startCall: () => void;
   initializeMedia: () => Promise<MediaStream>;
+  shareMotion: (motion: string, roomId: string) => void;
+  shareCoinToss: (result: any, roomId: string) => void;
+  sendTurnChange: (turn: string, roomId: string) => void;
+  onMotionShared: (callback: (motion: string) => void) => void;
+  onCoinTossShared: (callback: (result: any) => void) => void;
+  onTurnChanged: (callback: (turn: string) => void) => void;
   error: string | null;
 }
 
@@ -287,6 +293,45 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
     }
   }, []);
 
+  const shareMotion = useCallback((motion: string, roomId: string) => {
+    console.log('📜 Sharing motion:', motion);
+    if (socketRef.current) {
+      socketRef.current.emit('share-motion', { motion, roomId });
+    }
+  }, []);
+
+  const shareCoinToss = useCallback((result: any, roomId: string) => {
+    console.log('🪙 Sharing coin toss:', result);
+    if (socketRef.current) {
+      socketRef.current.emit('share-coin-toss', { result, roomId });
+    }
+  }, []);
+
+  const sendTurnChange = useCallback((turn: string, roomId: string) => {
+    console.log('🔄 Sending turn change:', turn);
+    if (socketRef.current) {
+      socketRef.current.emit('turn-change', { turn, roomId });
+    }
+  }, []);
+
+  const onMotionShared = useCallback((callback: (motion: string) => void) => {
+    if (socketRef.current) {
+      socketRef.current.on('motion-shared', callback);
+    }
+  }, []);
+
+  const onCoinTossShared = useCallback((callback: (result: any) => void) => {
+    if (socketRef.current) {
+      socketRef.current.on('coin-toss-shared', callback);
+    }
+  }, []);
+
+  const onTurnChanged = useCallback((callback: (turn: string) => void) => {
+    if (socketRef.current) {
+      socketRef.current.on('turn-changed', callback);
+    }
+  }, []);
+
   const startCall = async () => {
     console.log('📞 Starting call as initiator...');
     isInitiatorRef.current = true;
@@ -301,6 +346,12 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
     joinRoom,
     startCall,
     initializeMedia,
+    shareMotion,
+    shareCoinToss,
+    sendTurnChange,
+    onMotionShared,
+    onCoinTossShared,
+    onTurnChanged,
     error,
   };
 };

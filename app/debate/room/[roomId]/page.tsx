@@ -29,6 +29,12 @@ export default function DebateRoom() {
     joinRoom,
     startCall,
     initializeMedia,
+    shareMotion,
+    shareCoinToss,
+    sendTurnChange,
+    onMotionShared,
+    onCoinTossShared,
+    onTurnChanged,
     error: webRTCError,
   } = useWebRTC(roomId);
 
@@ -38,6 +44,11 @@ export default function DebateRoom() {
     isGenerating: isGeneratingMotion,
     generateMotion,
   } = useMotionGenerator();
+
+  // State for shared debate data
+  const [sharedMotion, setSharedMotion] = useState<string>('');
+  const [sharedCoinResult, setSharedCoinResult] = useState<any>(null);
+  const [isFirstUser, setIsFirstUser] = useState(false);
 
   // Coin Flip
   const {
@@ -80,7 +91,7 @@ export default function DebateRoom() {
     resume: resumeDebateTimer,
     switchTurn,
     reset: resetDebateTimer,
-  } = useDebateTimer({ speechTime: 180, preparationTime: 60 });
+  } = useDebateTimer({ speechTime: 300, preparationTime: 300 });
 
   // AI Judge
   const {
@@ -119,6 +130,42 @@ export default function DebateRoom() {
     }
   }, [roomId, phase, localStream, initializeMedia]);
 
+  // Listen for shared motion from other user
+  useEffect(() => {
+    if (roomId) {
+      onMotionShared((receivedMotion: string) => {
+        console.log('Received shared motion:', receivedMotion);
+        setSharedMotion(receivedMotion);
+      });
+    }
+  }, [roomId, onMotionShared]);
+
+  // Listen for shared coin toss from other user
+  useEffect(() => {
+    if (roomId) {
+      onCoinTossShared((result: any) => {
+        console.log('Received shared coin toss:', result);
+        setSharedCoinResult(result);
+        setPhase('preparation');
+        startPrepTimer();
+      });
+    }
+  }, [roomId, onCoinTossShared, startPrepTimer]);
+
+  // Listen for turn changes from other user
+  useEffect(() => {
+    if (roomId) {
+      onTurnChanged((turn: string) => {
+        console.log('Received turn change:', turn);
+        if (turn === 'Government') {
+          startTurn('Affirmative');
+        } else if (turn === 'Opposition') {
+          startTurn('Negative');
+        }
+      });
+    }
+  }, [roomId, onTurnChanged, startTurn]);
+
   const handleGenerateMotion = async () => {
     await generateMotion();
     setPhase('toss');
@@ -147,9 +194,13 @@ export default function DebateRoom() {
         try {
           console.log('Starting instant motion generation...');
           await generateMotion();
-          console.log('Motion generation completed, moving to toss phase');
-          setPhase('toss');
-          // Automatically flip coin after motion generation
+          console.log('Motion generation completed, sharing with opponent');
+          
+          // Share motion with the other user
+          shareMotion(motion, roomId);
+          setSharedMotion(motion);
+          
+          // First user generates the coin toss
           setTimeout(() => {
             console.log('Starting coin flip...');
             flipCoin();
@@ -161,28 +212,37 @@ export default function DebateRoom() {
       
       runWorkflow();
     }
-  }, [isConnected, phase]);
+  }, [isConnected, phase, generateMotion, shareMotion, roomId, flipCoin]);
 
   useEffect(() => {
     if (coinResult && !isFlipping) {
+      setSharedCoinResult(coinResult);
+      // Share coin toss result with the other user
+      shareCoinToss(coinResult, roomId);
       setPhase('preparation');
       startPrepTimer();
     }
-  }, [coinResult, isFlipping, startPrepTimer]);
+  }, [coinResult, isFlipping, startPrepTimer, shareCoinToss, roomId]);
 
   useEffect(() => {
     if (prepTimerExpired && phase === 'preparation') {
       setPhase('debate');
       resetPrepTimer();
-      // Start with Affirmative turn
-      startTurn('Affirmative');
+      // Start with Government turn (5 minutes)
+      startTurn('Government');
       setIsListening(true);
+      // Notify the other user about the turn change
+      sendTurnChange('Government', roomId);
     }
-  }, [prepTimerExpired, phase, resetPrepTimer, startTurn]);
+  }, [prepTimerExpired, phase, resetPrepTimer, startTurn, sendTurnChange, roomId]);
 
   const handleSwitchTurn = () => {
     nextRound();
-    switchTurn();
+    // Switch between Government and Opposition
+    const newTurn = currentTurn === 'Government' ? 'Opposition' : 'Government';
+    startTurn(newTurn);
+    // Notify the other user about the turn change
+    sendTurnChange(newTurn, roomId);
   };
 
   const handleFinishDebate = () => {
@@ -286,11 +346,11 @@ export default function DebateRoom() {
                       <p className="text-lg">Generating debate motion...</p>
                       <div className="animate-spin text-4xl mt-2">⚙️</div>
                     </div>
-                  ) : motion ? (
+                  ) : motion || sharedMotion ? (
                     <div className="space-y-3">
                       <div className="bg-blue-900/50 p-4 rounded-lg">
                         <p className="text-blue-400 mb-2">✓ Motion generated successfully</p>
-                        <p className="text-xl font-bold italic">"{motion}"</p>
+                        <p className="text-xl font-bold italic">"{motion || sharedMotion}"</p>
                       </div>
                     </div>
                   ) : (
@@ -306,13 +366,13 @@ export default function DebateRoom() {
                 <div className="space-y-4 text-center">
                   <p className="text-lg">Flipping coin for side assignment...</p>
                   <div className="text-6xl mb-4">
-                    {isFlipping ? '🪙' : coinResult ? (coinResult.result === 'Heads' ? '👑' : '🦅') : '🪙'}
+                    {isFlipping ? '🪙' : (coinResult || sharedCoinResult) ? ((coinResult || sharedCoinResult).result === 'Heads' ? '👑' : '🦅') : '🪙'}
                   </div>
-                  {coinResult && (
+                  {(coinResult || sharedCoinResult) && (
                     <div className="space-y-2">
-                      <p className="text-xl">Result: <span className="font-bold">{coinResult.result}</span></p>
-                      <p className="text-lg">You are: <span className="font-bold text-green-400">{coinResult.yourRole}</span></p>
-                      <p className="text-lg">Opponent is: <span className="font-bold text-red-400">{coinResult.opponentRole}</span></p>
+                      <p className="text-xl">Result: <span className="font-bold">{(coinResult || sharedCoinResult).result}</span></p>
+                      <p className="text-lg">You are: <span className="font-bold text-green-400">{(coinResult || sharedCoinResult).yourRole}</span></p>
+                      <p className="text-lg">Opponent is: <span className="font-bold text-red-400">{(coinResult || sharedCoinResult).opponentRole}</span></p>
                     </div>
                   )}
                 </div>
@@ -320,10 +380,18 @@ export default function DebateRoom() {
 
               {phase === 'preparation' && (
                 <div className="space-y-4 text-center">
+                  {(coinResult || sharedCoinResult) && (
+                    <div className="bg-purple-900/50 p-3 rounded-lg mb-4">
+                      <p className="text-lg">🪙 Coin Toss Result</p>
+                      <p className="text-xl font-bold">{(coinResult || sharedCoinResult).result}</p>
+                      <p className="text-lg">You are: <span className="text-green-400 font-bold">{(coinResult || sharedCoinResult).yourRole}</span></p>
+                      <p className="text-lg">Opponent is: <span className="text-red-400 font-bold">{(coinResult || sharedCoinResult).opponentRole}</span></p>
+                    </div>
+                  )}
                   <div className="text-5xl font-mono font-bold text-yellow-400">
                     {formattedPrepTime}
                   </div>
-                  <p className="text-gray-400">Preparation Time</p>
+                  <p className="text-gray-400">Preparation Time (5 minutes)</p>
                   <div className="text-sm text-gray-500">
                     Prepare your arguments for the motion!
                   </div>
@@ -336,7 +404,7 @@ export default function DebateRoom() {
                     <div className="text-4xl font-mono font-bold text-blue-400 mb-2">
                       {formattedDebateTime}
                     </div>
-                    <p className="text-lg">Current Turn: <span className="font-bold capitalize">{currentTurn}</span></p>
+                    <p className="text-lg">Current Turn: <span className="font-bold capitalize">{currentTurn === 'Government' ? 'Government (5 min)' : 'Opposition (5 min)'}</span></p>
                     <p className="text-sm text-gray-400">Round {round}</p>
                   </div>
                   

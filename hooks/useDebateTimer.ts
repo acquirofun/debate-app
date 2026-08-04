@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 
-export type SpeechTurn = 'Affirmative' | 'Negative';
+export type SpeechTurn = 'Government' | 'Opposition';
 
 interface DebateTimerConfig {
   speechTime: number; // in seconds
   preparationTime: number; // in seconds
 }
 
-export const useDebateTimer = (config: DebateTimerConfig = { speechTime: 180, preparationTime: 60 }) => {
+export const useDebateTimer = (config: DebateTimerConfig = { speechTime: 300, preparationTime: 300 }) => {
   const [timeLeft, setTimeLeft] = useState(config.speechTime);
   const [isRunning, setIsRunning] = useState(false);
   const [currentTurn, setCurrentTurn] = useState<SpeechTurn | null>(null);
