@@ -27,28 +27,44 @@ app.prepare().then(() => {
       origin: '*',
       methods: ['GET', 'POST']
     },
-    path: '/socket.io/'
+    path: '/socket.io/',
+    addTrailingSlash: false
   });
 
   io.on('connection', (socket) => {
     console.log('✓ User connected:', socket.id);
 
     socket.on('join-room', (roomId) => {
+      console.log(`🏠 User ${socket.id} attempting to join room ${roomId}`);
+      
+      // Leave any existing rooms first
+      socket.rooms.forEach((room) => {
+        if (room !== socket.id) {
+          socket.leave(room);
+          console.log(`🚪 User ${socket.id} left room ${room}`);
+        }
+      });
+      
       socket.join(roomId);
       console.log(`🏠 User ${socket.id} joined room ${roomId}`);
       
       // Check if there are other users in the room
       const room = io.sockets.adapter.rooms.get(roomId);
-      if (room && room.size > 1) {
+      if (room) {
         console.log(`👥 Room ${roomId} now has ${room.size} users`);
         // Notify the new user that there are others in the room
-        socket.emit('room-users', Array.from(room).filter(id => id !== socket.id));
+        const otherUsers = Array.from(room).filter(id => id !== socket.id);
+        if (otherUsers.length > 0) {
+          socket.emit('room-users', otherUsers);
+          console.log(`📤 Notified new user about ${otherUsers.length} existing users`);
+        }
       } else {
         console.log(`👤 User ${socket.id} is first in room ${roomId}`);
       }
       
       // Always notify others in the room that a new user joined
       socket.to(roomId).emit('user-connected', socket.id);
+      console.log(`📢 Notified other users in room ${roomId} about new user ${socket.id}`);
     });
 
     socket.on('signal', (data) => {

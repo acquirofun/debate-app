@@ -326,7 +326,16 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
   const joinRoom = useCallback((roomToJoin: string) => {
     console.log('🏠 Joining room:', roomToJoin);
     if (socketRef.current) {
-      socketRef.current.emit('join-room', roomToJoin);
+      // Ensure socket is connected before joining room
+      if (socketRef.current.connected) {
+        socketRef.current.emit('join-room', roomToJoin);
+      } else {
+        console.log('⏳ Socket not connected yet, waiting...');
+        socketRef.current.on('connect', () => {
+          console.log('✓ Socket connected, joining room:', roomToJoin);
+          socketRef.current?.emit('join-room', roomToJoin);
+        });
+      }
     }
   }, []);
 
