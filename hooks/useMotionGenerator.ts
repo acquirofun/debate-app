@@ -9,19 +9,26 @@ export const useMotionGenerator = () => {
     try {
       setIsGenerating(true);
       setError(null);
+      console.log('Starting motion generation...');
 
       const response = await fetch('/api/generate-motion', {
         method: 'POST',
       });
 
+      console.log('Response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to generate motion');
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.error || 'Failed to generate motion');
       }
 
       const data = await response.json();
+      console.log('Generated motion:', data.motion);
       setMotion(data.motion);
     } catch (err) {
-      setError('Failed to generate motion. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate motion. Please try again.';
+      setError(errorMessage);
       console.error('Error generating motion:', err);
     } finally {
       setIsGenerating(false);
