@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { useMotionGenerator } from '@/hooks/useMotionGenerator';
@@ -50,6 +50,7 @@ export default function DebateRoom() {
   const [sharedCoinResult, setSharedCoinResult] = useState<any>(null);
   const [isFirstUser, setIsFirstUser] = useState(false);
   const [hasReceivedMotion, setHasReceivedMotion] = useState(false);
+  const workflowExecutedRef = useRef(false);
 
   // Coin Flip
   const {
@@ -196,7 +197,8 @@ export default function DebateRoom() {
 
   // Automated workflow after connection - instant motion selection
   useEffect(() => {
-    if (isConnected && phase === 'setup' && !hasReceivedMotion) {
+    if (isConnected && phase === 'setup' && !hasReceivedMotion && !workflowExecutedRef.current) {
+      workflowExecutedRef.current = true;
       setPhase('motion');
       // Instantly generate motion without delay
       const runWorkflow = async () => {
