@@ -71,7 +71,7 @@ export const useDebateTimer = (config: DebateTimerConfig = { speechTime: 300, pr
   };
 
   const switchTurn = () => {
-    const newTurn: SpeechTurn = currentTurn === 'Affirmative' ? 'Negative' : 'Affirmative';
+    const newTurn: SpeechTurn = currentTurn === 'Government' ? 'Opposition' : 'Government';
     startTurn(newTurn);
   };
 

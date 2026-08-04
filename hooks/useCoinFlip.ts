@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 export type Side = 'Heads' | 'Tails';
-export type DebateRole = 'Affirmative' | 'Negative';
+export type DebateRole = 'Government' | 'Opposition';
 
 interface CoinFlipResult {
   result: Side;
@@ -23,9 +23,9 @@ export const useCoinFlip = () => {
       const randomSide = sides[Math.floor(Math.random() * sides.length)];
       
       // Assign roles based on coin flip
-      // If heads, you're Affirmative; if tails, you're Negative
-      const yourRole: DebateRole = randomSide === 'Heads' ? 'Affirmative' : 'Negative';
-      const opponentRole: DebateRole = randomSide === 'Heads' ? 'Negative' : 'Affirmative';
+      // If heads, you're Government; if tails, you're Opposition
+      const yourRole: DebateRole = randomSide === 'Heads' ? 'Government' : 'Opposition';
+      const opponentRole: DebateRole = randomSide === 'Heads' ? 'Opposition' : 'Government';
 
       setResult({
         result: randomSide,

@@ -158,9 +158,9 @@ export default function DebateRoom() {
       onTurnChanged((turn: string) => {
         console.log('Received turn change:', turn);
         if (turn === 'Government') {
-          startTurn('Affirmative');
+          startTurn('Government');
         } else if (turn === 'Opposition') {
-          startTurn('Negative');
+          startTurn('Opposition');
         }
       });
     }
@@ -474,12 +474,12 @@ export default function DebateRoom() {
                       
                       <div className="grid grid-cols-2 gap-2 text-center">
                         <div className="bg-green-900/50 p-3 rounded">
-                          <p className="text-sm">Affirmative</p>
-                          <p className="text-2xl font-bold">{judgeResult.affirmativeScore}</p>
+                          <p className="text-sm">Government</p>
+                          <p className="text-2xl font-bold">{judgeResult.governmentScore}</p>
                         </div>
                         <div className="bg-red-900/50 p-3 rounded">
-                          <p className="text-sm">Negative</p>
-                          <p className="text-2xl font-bold">{judgeResult.negativeScore}</p>
+                          <p className="text-sm">Opposition</p>
+                          <p className="text-2xl font-bold">{judgeResult.oppositionScore}</p>
                         </div>
                       </div>
 
@@ -498,7 +498,7 @@ export default function DebateRoom() {
                     <button
                       onClick={() => {
                         const fullTranscript = getFullTranscript();
-                        judgeDebate(fullTranscript, motion);
+                        judgeDebate(fullTranscript, motion || sharedMotion);
                       }}
                       className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition"
                     >

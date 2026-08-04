@@ -50,12 +50,12 @@ Please provide:
 Format your response as JSON with this structure:
 {
   "analysis": "Your detailed analysis",
-  "affirmativeScore": number,
-  "negativeScore": number,
-  "winner": "Affirmative" or "Negative",
+  "governmentScore": number,
+  "oppositionScore": number,
+  "winner": "Government" or "Opposition",
   "feedback": {
-    "affirmative": "Feedback for affirmative",
-    "negative": "Feedback for negative"
+    "government": "Feedback for government",
+    "opposition": "Feedback for opposition"
   }
 }`;
 
@@ -74,12 +74,12 @@ Format your response as JSON with this structure:
       // If parsing fails, return the raw text
       return NextResponse.json({ 
         analysis: response,
-        affirmativeScore: 50,
-        negativeScore: 50,
+        governmentScore: 50,
+        oppositionScore: 50,
         winner: "Tie",
         feedback: {
-          affirmative: "See analysis above",
-          negative: "See analysis above"
+          government: "See analysis above",
+          opposition: "See analysis above"
         }
       });
     }
