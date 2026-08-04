@@ -269,6 +269,22 @@ export default function DebateRoom() {
         <div className="text-center mb-6">
           <h1 className="text-4xl font-bold mb-2">P2P Video Debate</h1>
           <p className="text-gray-400">Room Code: <span className="text-2xl font-mono text-blue-400">{roomId}</span></p>
+          {(coinResult || sharedCoinResult) && (
+            <div className="mt-4 bg-gradient-to-r from-purple-900 to-blue-900 p-4 rounded-xl border border-purple-700">
+              <p className="text-sm text-purple-300 mb-2">🪙 Coin Toss Result</p>
+              <p className="text-xl font-bold text-white">{(coinResult || sharedCoinResult).result}</p>
+              <div className="flex justify-center gap-4 mt-2">
+                <div className="text-center">
+                  <p className="text-sm text-gray-400">You</p>
+                  <p className="text-lg font-bold text-green-400">{(coinResult || sharedCoinResult).yourRole}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-gray-400">Opponent</p>
+                  <p className="text-lg font-bold text-red-400">{(coinResult || sharedCoinResult).opponentRole}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
