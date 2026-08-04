@@ -49,6 +49,7 @@ export default function DebateRoom() {
   const [sharedMotion, setSharedMotion] = useState<string>('');
   const [sharedCoinResult, setSharedCoinResult] = useState<any>(null);
   const [isFirstUser, setIsFirstUser] = useState(false);
+  const [hasReceivedMotion, setHasReceivedMotion] = useState(false);
 
   // Coin Flip
   const {
@@ -133,10 +134,22 @@ export default function DebateRoom() {
   // Listen for shared motion from other user
   useEffect(() => {
     if (roomId) {
-      onMotionShared((receivedMotion: string) => {
+      const handleMotionShared = (receivedMotion: string) => {
         console.log('Received shared motion:', receivedMotion);
         setSharedMotion(receivedMotion);
-      });
+        setHasReceivedMotion(true);
+        setPhase('toss');
+      };
+      
+      onMotionShared(handleMotionShared);
+      
+      return () => {
+        // Cleanup listener when component unmounts
+        const socket = (window as any).socketInstance;
+        if (socket) {
+          socket.off('motion-shared', handleMotionShared);
+        }
+      };
     }
   }, [roomId, onMotionShared]);
 
@@ -187,7 +200,7 @@ export default function DebateRoom() {
 
   // Automated workflow after connection - instant motion selection
   useEffect(() => {
-    if (isConnected && phase === 'setup') {
+    if (isConnected && phase === 'setup' && !hasReceivedMotion) {
       setPhase('motion');
       // Instantly generate motion without delay
       const runWorkflow = async () => {
@@ -200,6 +213,7 @@ export default function DebateRoom() {
           if (motion) {
             shareMotion(motion, roomId);
             setSharedMotion(motion);
+            setIsFirstUser(true);
           }
           
           // First user generates the coin toss
@@ -214,7 +228,7 @@ export default function DebateRoom() {
       
       runWorkflow();
     }
-  }, [isConnected, phase]);
+  }, [isConnected, phase, hasReceivedMotion]);
 
   useEffect(() => {
     if (coinResult && !isFlipping) {
@@ -359,21 +373,21 @@ export default function DebateRoom() {
 
               {phase === 'motion' && (
                 <div className="space-y-4 text-center">
-                  {isGeneratingMotion ? (
+                  {isGeneratingMotion && !hasReceivedMotion ? (
                     <div>
                       <p className="text-lg">Generating debate motion...</p>
                       <div className="animate-spin text-4xl mt-2">⚙️</div>
                     </div>
-                  ) : motion || sharedMotion ? (
+                  ) : sharedMotion ? (
                     <div className="space-y-3">
                       <div className="bg-blue-900/50 p-4 rounded-lg">
                         <p className="text-blue-400 mb-2">✓ Motion generated successfully</p>
-                        <p className="text-xl font-bold italic">"{motion || sharedMotion}"</p>
+                        <p className="text-xl font-bold italic">"{sharedMotion}"</p>
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <p className="text-lg">Generating debate motion...</p>
+                      <p className="text-lg">Waiting for motion from opponent...</p>
                       <div className="animate-spin text-4xl mt-2">⚙️</div>
                     </div>
                   )}

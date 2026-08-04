@@ -56,7 +56,23 @@ export const useWebRTC = (roomId: string | null): UseWebRTCReturn => {
 
     socketRef.current.on('connect_error', (err) => {
       console.error('Socket connection error:', err);
-      setError('Failed to connect to server. Please refresh the page.');
+      setError('Connection error. Attempting to reconnect...');
+    });
+
+    socketRef.current.on('reconnect', () => {
+      console.log('🔄 Socket reconnected');
+      if (roomId) {
+        socketRef.current?.emit('join-room', roomId);
+      }
+    });
+
+    socketRef.current.on('reconnect_attempt', () => {
+      console.log('🔄 Attempting to reconnect...');
+    });
+
+    socketRef.current.on('reconnect_failed', () => {
+      console.error('❌ Reconnection failed');
+      setError('Failed to reconnect. Please refresh the page.');
     });
 
     socketRef.current.on('user-connected', async (userId: string) => {
