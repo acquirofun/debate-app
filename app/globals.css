@@ -1,26 +1,129 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Brand Colors - Dark Theme */
+  --background: #0b1326;
+  --foreground: #dae2fd;
+  --surface: #0b1326;
+  --surface-dim: #0b1326;
+  --surface-bright: #31394d;
+  --surface-container-lowest: #060e20;
+  --surface-container-low: #131b2e;
+  --surface-container: #171f33;
+  --surface-container-high: #222a3d;
+  --surface-container-highest: #2d3449;
+  
+  /* Primary - Electric Blue */
+  --primary: #b4c5ff;
+  --primary-dark: #2563eb;
+  --on-primary: #002a78;
+  --primary-container: #2563eb;
+  --on-primary-container: #eeefff;
+  
+  /* Secondary - Emerald Green */
+  --secondary: #4edea3;
+  --on-secondary: #003824;
+  --secondary-container: #00a572;
+  --on-secondary-container: #00311f;
+  
+  /* Tertiary */
+  --tertiary: #c0c1ff;
+  --on-tertiary: #1000a9;
+  --tertiary-container: #585be6;
+  --on-tertiary-container: #f1eeff;
+  
+  /* Error */
+  --error: #ffb4ab;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+  
+  /* Outline */
+  --outline: #8d90a0;
+  --outline-variant: #434655;
+  
+  /* Surface Tint */
+  --surface-tint: #b4c5ff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-surface: var(--surface);
+  --color-surface-container: var(--surface-container);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-error: var(--error);
+  --color-outline: var(--outline);
+  
+  /* Font Families */
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glassmorphism Effects */
+.glass {
+  background: rgba(23, 31, 51, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-active {
+  background: rgba(37, 99, 235, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--primary);
+  box-shadow: 0 0 16px rgba(180, 197, 255, 0.3);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-container-low);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-container-high);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--outline);
+}
+
+/* Typography Utilities */
+.font-display {
+  font-family: 'DM Sans', sans-serif;
+}
+
+.font-mono-tech {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Neon Glow Effects */
+.neon-glow {
+  box-shadow: 0 0 16px rgba(180, 197, 255, 0.3);
+}
+
+.neon-glow-green {
+  box-shadow: 0 0 16px rgba(78, 222, 163, 0.3);
+}
+
+.neon-glow-red {
+  box-shadow: 0 0 16px rgba(255, 180, 171, 0.3);
 }
