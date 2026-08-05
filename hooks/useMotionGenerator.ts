@@ -5,7 +5,7 @@ export const useMotionGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const generateMotion = async () => {
+  const generateMotion = async (): Promise<string | undefined> => {
     try {
       setIsGenerating(true);
       setError(null);
@@ -26,10 +26,13 @@ export const useMotionGenerator = () => {
       const data = await response.json();
       console.log('Generated motion:', data.motion);
       setMotion(data.motion);
+      // Return the generated motion so callers don't have to rely on stale state
+      return data.motion;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate motion. Please try again.';
       setError(errorMessage);
       console.error('Error generating motion:', err);
+      return undefined;
     } finally {
       setIsGenerating(false);
     }
